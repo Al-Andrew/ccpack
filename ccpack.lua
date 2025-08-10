@@ -31,15 +31,30 @@
 ---@return BakedManifest The parsed manifest object
 local function get_manifest(package_name)
     local url = "https://raw.githubusercontent.com/" .. package_name .. "/main/baked_manifest.json" -- todo: support other branches/versions
-    local response = http.get(url)
-    if not response then
+    -- local response = http.get(url)
+
+    -- cant use http by default, just use wget
+    shell.run("wget " .. url .. " baked_manifest.json")
+
+    if not fs.exists("baked_manifest.json") then
         error("Failed to download manifest from " .. url)
     end
 
+    local file = fs.open("baked_manifest.json", "r")
+    if not file then
+        error("Failed to open manifest file: baked_manifest.json")
+    end
+
     ---@type string
-    local content = response.readAll()
-    response.close()
+    local content = file.readAll()
+    file.close()
     
+    fs.delete("baked_manifest.json") -- clean up the manifest file after reading
+    
+    if not content or content == "" then
+        error("Manifest file is empty: baked_manifest.json")
+    end
+
     return textutils.unserializeJSON(content)
 end
 
