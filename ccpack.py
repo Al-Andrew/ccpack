@@ -27,7 +27,7 @@ def create_baked_manifest():
     baked_manifest = {
         "name": ccpack_data["name"],
         "version": ccpack_data["version"],
-        "author": ccpack_data["author"],
+        "url": "https://github.com/" + ccpack_data["author"],
         "files": []
     }
 
@@ -35,8 +35,12 @@ def create_baked_manifest():
     for root, dirs, files in os.walk('.'):
         for file in files:
             if file.endswith('.lua'):
-                file_path = os.path.join(root, file)
-                baked_manifest["files"].append(file_path)
+                file_path = os.path.relpath(os.path.join(root, file), start='.')
+                baked_file = {
+                    "path": file_path,
+                    "url": "https://raw.githubusercontent.com/" + ccpack_data["author"] + "/" + ccpack_data["name"] + "/main/" + file_path, # TODO: Support versioning
+                }
+                baked_manifest["files"].append(baked_file)
 
     # Write the baked_manifest.json file
     with open('baked_manifest.json', 'w') as f:
