@@ -87,8 +87,12 @@ local function install_package(package_name)
         error("Invalid manifest for package: " .. package_name)
     end
 
+    -- we put the package in a directory named after the package
+    local package_dir = fs.combine(fs.getDir(shell.getRunningProgram()), manifest.name)
+    mkdir_if_not_exists_with_parent(package_dir)
+
     for _, file in ipairs(manifest.files) do
-        download_file_to_path(file.path, file.url)
+        download_file_to_path(fs.combine(package_dir, file.path), file.url)
     end
 end
 
