@@ -36,6 +36,7 @@ def create_baked_manifest():
 
     # Walk through the current directory recursively, ignore the ccpack directory itself
     current_ccpack_data = ccpack_data.copy()
+    ccpack_data_relative_dir = '.'
     for root, dirs, files in os.walk('.'):
         # Ignore the ccpack directory itself
         if 'ccpack' in dirs:
@@ -51,12 +52,13 @@ def create_baked_manifest():
         if 'ccpack.json' in files:
             with open(os.path.join(root, 'ccpack.json'), 'r') as ccpack_file:
                 current_ccpack_data = json.load(ccpack_file)
+            ccpack_data_relative_dir = os.path.relpath(root, start='.')
             print("Found ccpack.json, using its data: ", current_ccpack_data)
 
         for file in files:
             if file.endswith('.lua'):
                 file_path = os.path.join(root, file)
-                relative_path = os.path.relpath(file_path, start='.')
+                relative_path = os.path.relpath(file_path, start=ccpack_data_relative_dir)
 
                 baked_file = {
                     "path": relative_path,
