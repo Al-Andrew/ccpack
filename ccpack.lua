@@ -30,7 +30,7 @@
 ---@param package_name string The name of the package
 ---@return BakedManifest The parsed manifest object
 local function get_manifest(package_name)
-    local url = "https://raw.githubusercontent.com/" .. package_name .. "/main/baked_manifest.json" -- toodo: support other branches/versions
+    local url = "https://raw.githubusercontent.com/" .. package_name .. "/main/baked_manifest.json" -- todo: support other branches/versions
     local response = http.get(url)
     if not response then
         error("Failed to download manifest from " .. url)
@@ -82,16 +82,25 @@ end
 --- Installs a package by downloading its files according to the manifest
 ---@param package_name string The name of the package to install
 local function install_package(package_name)
+    print("Installing package: " .. package_name)
+
     local manifest = get_manifest(package_name)
     if not manifest or not manifest.files then
         error("Invalid manifest for package: " .. package_name)
     end
+    print("Got manifest!")
+    print("Package name: " .. manifest.name)
+    print("Package version: " .. manifest.version)
+    print("Package URL: " .. manifest.url)
 
     -- we put the package in a directory named after the package
     local package_dir = fs.combine(fs.getDir(shell.getRunningProgram()), manifest.name)
     mkdir_if_not_exists_with_parent(package_dir)
 
+    print("Created working directory: " .. package_dir)
+
     for _, file in ipairs(manifest.files) do
+        print("Downloading file: " .. file.path .. " from " .. file.url)
         download_file_to_path(fs.combine(package_dir, file.path), file.url)
     end
 end
@@ -102,3 +111,5 @@ local package_name = arg[1]
 if not package_name then
     error("Usage: ccpack.lua <package_name>")
 end
+
+install_package(package_name)
