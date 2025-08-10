@@ -78,20 +78,11 @@ end
 ---@param url string The URL to download the file from
 local function download_file_to_path(path, url)
     mkdir_if_not_exists_with_parent(fs.getDir(path))
-    
-    local response = http.get(url)
-    if not response then
-        error("Failed to download file from " .. url)
-    end
 
-    local file = fs.open(path, "wb")
-    if not file then
-        error("Failed to open file for writing: " .. path)
+    shell.run("wget " .. url .. " " .. path)
+    if not fs.exists(path) then
+        error("Failed to download file from " .. url .. " to " .. path)
     end
-
-    file.write(response.readAll())
-    file.close()
-    response.close()
 end
 
 --- Installs a package by downloading its files according to the manifest
