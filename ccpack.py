@@ -12,6 +12,9 @@ This file should contain a JSON object with the following structure:
 
 This script will look through the current directory recursively and create a baked_manifest.json file
 with all the lua files found.
+
+If you have dependencies, add them as a submodule in your git repository.
+If they have a ccpack.json file, it will be used to create the baked_manifest.json file. (the author, name and version will be used from the ccpack.json file)
 """
 
 import os
@@ -31,16 +34,39 @@ def create_baked_manifest():
         "files": []
     }
 
-    # Walk through the current directory recursively
+    # Walk through the current directory recursively, ignore the ccpack directory itself
+    current_ccpack_data = ccpack_data.copy()
     for root, dirs, files in os.walk('.'):
+        # Ignore the ccpack directory itself
+        if 'ccpack' in dirs:
+            dirs.remove('ccpack')
+
+        # ignore .git directory
+        if '.git' in dirs:
+            dirs.remove('.git')
+
+        print(f"entering directory: {root}")
+
+        # Check for ccpack.json in the current directory
+        if 'ccpack.json' in files:
+            with open(os.path.join(root, 'ccpack.json'), 'r') as ccpack_file:
+                current_ccpack_data = json.load(ccpack_file)
+            print("Found ccpack.json, using its data: ", current_ccpack_data)
+
         for file in files:
             if file.endswith('.lua'):
-                file_path = os.path.relpath(os.path.join(root, file), start='.')
+                file_path = os.path.join(root, file)
+                relative_path = os.path.relpath(file_path, start='.')
+
                 baked_file = {
-                    "path": file_path,
-                    "url": "https://raw.githubusercontent.com/" + ccpack_data["author"] + "/" + ccpack_data["name"] + "/main/" + file_path, # TODO: Support versioning
+                    "path": relative_path,
+                    "url": "https://raw.githubusercontent.com/" + current_ccpack_data["author"] + "/" + current_ccpack_data["name"] + "/refs/heads/main/" + relative_path
                 }
+                print(f"Adding file to baked_manifest: {baked_file}")
+
+                # Add the file to the baked_manifest
                 baked_manifest["files"].append(baked_file)
+        
 
     # Write the baked_manifest.json file
     with open('baked_manifest.json', 'w') as f:
