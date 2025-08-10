@@ -52,17 +52,17 @@ def create_baked_manifest():
         if 'ccpack.json' in files:
             with open(os.path.join(root, 'ccpack.json'), 'r') as ccpack_file:
                 current_ccpack_data = json.load(ccpack_file)
-            ccpack_data_relative_dir = os.path.relpath(root, start='.')
+            ccpack_data_relative_dir = root
             print("Found ccpack.json, using its data: ", current_ccpack_data)
 
         for file in files:
             if file.endswith('.lua'):
                 file_path = os.path.join(root, file)
-                relative_path = os.path.relpath(file_path, start=ccpack_data_relative_dir)
-
+                relative_path_url = os.path.relpath(file_path, start=ccpack_data_relative_dir)
+                relative_path_file = os.path.relpath(file_path, start='.')
                 baked_file = {
-                    "path": relative_path,
-                    "url": "https://raw.githubusercontent.com/" + current_ccpack_data["author"] + "/" + current_ccpack_data["name"] + "/refs/heads/main/" + relative_path
+                    "path": relative_path_file,
+                    "url": "https://raw.githubusercontent.com/" + current_ccpack_data["author"] + "/" + current_ccpack_data["name"] + "/refs/heads/main/" + relative_path_url
                 }
                 print(f"Adding file to baked_manifest: {baked_file}")
 
